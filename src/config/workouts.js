@@ -1,21 +1,22 @@
-const placeholder = "/exercises/placeholder.svg";
+const baseUrl = import.meta.env.BASE_URL;
+const placeholder = `${baseUrl}exercises/placeholder.svg`;
 const treningA = [
-  "/exercises/treningA1.png",
-  "/exercises/treningA2.png",
-  "/exercises/treningA3.png",
-  "/exercises/treningA4.png",
-  "/exercises/treningA5.png",
-  "/exercises/treningA6.png",
-  "/exercises/treningA7.png",
-  "/exercises/treningA8.png",
+  `${baseUrl}exercises/treningA1.png`,
+  `${baseUrl}exercises/treningA2.png`,
+  `${baseUrl}exercises/treningA3.png`,
+  `${baseUrl}exercises/treningA4.png`,
+  `${baseUrl}exercises/treningA5.png`,
+  `${baseUrl}exercises/treningA6.png`,
+  `${baseUrl}exercises/treningA7.png`,
+  `${baseUrl}exercises/treningA8.png`,
 ];
 const resetImages = [
-  "/exercises/reset1.png",
-  "/exercises/reset2.png",
-  "/exercises/reset3.png",
-  "/exercises/reset4.png",
-  "/exercises/reset5.png",
-  "/exercises/reset6.png",
+  `${baseUrl}exercises/reset1.png`,
+  `${baseUrl}exercises/reset2.png`,
+  `${baseUrl}exercises/reset3.png`,
+  `${baseUrl}exercises/reset4.png`,
+  `${baseUrl}exercises/reset5.png`,
+  `${baseUrl}exercises/reset6.png`,
 ];
 
 export const workouts = [
