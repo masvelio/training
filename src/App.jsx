@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { workouts } from "@/config/workouts"
 import {
   clearSession,
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card"
 
 const REST_SECONDS = 20
+const TIMER_END_SOUND_SRC = `${import.meta.env.BASE_URL}audio/timer-end.mp3`
 
 const workoutById = Object.fromEntries(workouts.map((w) => [w.id, w]))
 
@@ -39,6 +40,24 @@ function App() {
   const [session, setSession] = useState(null)
   const [summary, setSummary] = useState(null)
   const [lastWorkoutId, setLastWorkoutId] = useState(null)
+  const endSoundRef = useRef(null)
+
+  const playEndSound = useCallback(() => {
+    const audio = endSoundRef.current
+    if (!audio) return
+    audio.currentTime = 0
+    audio.play().catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (typeof Audio === "undefined") return undefined
+    const audio = new Audio(TIMER_END_SOUND_SRC)
+    audio.preload = "auto"
+    endSoundRef.current = audio
+    return () => {
+      endSoundRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     const savedSession = loadSession()
@@ -92,6 +111,7 @@ function App() {
         }
 
         if (prev.phase === "rest") {
+          playEndSound()
           const nextIndex = prev.index + 1
           const nextExercise = exercises[nextIndex]
           if (!nextExercise) {
@@ -109,6 +129,7 @@ function App() {
         }
 
         if (prev.phase === "exercise") {
+          playEndSound()
           const isLast = prev.index >= totalExercises - 1
           if (isLast) {
             clearSession()
@@ -128,7 +149,7 @@ function App() {
     }, 1000)
 
     return () => window.clearInterval(interval)
-  }, [exercises, session, totalExercises])
+  }, [exercises, playEndSound, session, totalExercises])
 
   const startWorkout = (workoutId) => {
     const selected = workoutById[workoutId]
@@ -261,12 +282,14 @@ function App() {
             ) : null}
           </header>
 
-          <div className="flex flex-col gap-4">
+          <div className="workout-picker">
             {workouts.map((workoutItem) => (
               <Card key={workoutItem.id} className="border-border/60">
                 <CardHeader>
-                  <CardTitle>{workoutItem.name}</CardTitle>
-                  <CardDescription>{workoutItem.subtitle}</CardDescription>
+                  <CardTitle className="break-words">{workoutItem.name}</CardTitle>
+                  <CardDescription className="break-words">
+                    {workoutItem.subtitle}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button className="w-full" onClick={() => startWorkout(workoutItem.id)}>
@@ -309,13 +332,27 @@ function App() {
                 {nextExercise ? `Nastepne: ${nextExercise.name}` : "Koniec treningu"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="text-center text-5xl font-semibold">
-                {formatTime(session.remainingSec ?? REST_SECONDS)}
+            <CardContent className="flex flex-col gap-4 landscape:flex-row landscape:items-center landscape:gap-6">
+              <div className="flex flex-col gap-4 landscape:flex-1">
+                <div className="text-center text-5xl font-semibold">
+                  {formatTime(session.remainingSec ?? REST_SECONDS)}
+                </div>
+                <Button className="w-full" onClick={skipRest}>
+                  Pomin przerwe
+                </Button>
               </div>
-              <Button className="w-full" onClick={skipRest}>
-                Pomin przerwe
-              </Button>
+              {nextExercise ? (
+                <div className="w-full overflow-hidden rounded-lg border border-border/60 bg-muted landscape:w-[40%] landscape:flex-none">
+                  <div className="aspect-[4/3] w-full landscape:aspect-auto landscape:h-[30vh]">
+                    <img
+                      src={nextExercise.image}
+                      alt={nextExercise.name}
+                      className="h-full w-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>
