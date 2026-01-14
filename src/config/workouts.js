@@ -1,5 +1,4 @@
 const baseUrl = import.meta.env.BASE_URL;
-const placeholder = `${baseUrl}exercises/placeholder.svg`;
 const treningA = [
   `${baseUrl}exercises/treningA1.png`,
   `${baseUrl}exercises/treningA2.png`,
@@ -9,6 +8,24 @@ const treningA = [
   `${baseUrl}exercises/treningA6.png`,
   `${baseUrl}exercises/treningA7.png`,
   `${baseUrl}exercises/treningA8.png`,
+];
+const treningB = [
+  `${baseUrl}exercises/b1.jpg`,
+  `${baseUrl}exercises/b2.jpg`,
+  `${baseUrl}exercises/b3.jpg`,
+  `${baseUrl}exercises/b4.jpg`,
+  `${baseUrl}exercises/b5.jpg`,
+  `${baseUrl}exercises/b6.jpg`,
+  `${baseUrl}exercises/b7.jpg`,
+];
+const treningC = [
+  `${baseUrl}exercises/c1.jpg`,
+  `${baseUrl}exercises/c2.jpg`,
+  `${baseUrl}exercises/c3.png`,
+  `${baseUrl}exercises/c4.png`,
+  `${baseUrl}exercises/c5.jpg`,
+  `${baseUrl}exercises/c6.jpg`,
+  `${baseUrl}exercises/c7.jpg`,
 ];
 const resetImages = [
   `${baseUrl}exercises/reset1.png`,
@@ -111,7 +128,7 @@ export const workouts = [
             name: "Step-up + zejście",
             type: "reps",
             repsText: "3 x 6-10 / strona",
-            image: placeholder,
+            image: treningB[0],
             note: "Kontrolowane zejście 2-3 s.",
           },
           {
@@ -119,7 +136,7 @@ export const workouts = [
             name: "Lateral band walk",
             type: "reps",
             repsText: "2-3 x 10-15 kroków / strona",
-            image: placeholder,
+            image: treningB[1],
             note: "Band nad kolanami.",
           },
           {
@@ -127,7 +144,7 @@ export const workouts = [
             name: "Balans na jednej nodze",
             type: "time",
             durationSec: 30,
-            image: placeholder,
+            image: treningB[2],
             note: "3 x 20-30 s / strona.",
           },
           {
@@ -135,7 +152,7 @@ export const workouts = [
             name: "Push-up plus",
             type: "reps",
             repsText: "3 x 8-15",
-            image: placeholder,
+            image: treningB[3],
             note: "Wersja przy ścianie lub blacie.",
           },
           {
@@ -143,7 +160,7 @@ export const workouts = [
             name: "Wall slides",
             type: "reps",
             repsText: "2 x 8-12",
-            image: placeholder,
+            image: treningB[4],
             note: "Żebra nie uciekają w przód.",
           },
           {
@@ -151,7 +168,7 @@ export const workouts = [
             name: "Suitcase march",
             type: "time",
             durationSec: 40,
-            image: placeholder,
+            image: treningB[5],
             note: "3 x 30-45 s / strona.",
           },
           {
@@ -159,7 +176,7 @@ export const workouts = [
             name: "Ewersja stopy mini-band",
             type: "reps",
             repsText: "2 x 15-20 / strona",
-            image: placeholder,
+            image: treningB[6],
             note: "Mały zakres ruchu.",
           },
         ],
@@ -180,7 +197,7 @@ export const workouts = [
             name: "Hamstring heel-dig iso",
             type: "time",
             durationSec: 25,
-            image: placeholder,
+            image: treningC[0],
             note: "5 x 20-30 s / strona.",
           },
           {
@@ -188,7 +205,7 @@ export const workouts = [
             name: "Glute bridge (marsz)",
             type: "reps",
             repsText: "3 x 8-12 łącznie",
-            image: placeholder,
+            image: treningC[1],
             note: "Bez bujania miednicy.",
           },
           {
@@ -196,7 +213,7 @@ export const workouts = [
             name: "Wiosłowanie jednorącz",
             type: "reps",
             repsText: "3 x 12-20 / strona",
-            image: placeholder,
+            image: treningC[2],
             note: "Pauza 1-2 s u góry.",
           },
           {
@@ -204,7 +221,7 @@ export const workouts = [
             name: "Prone T/W",
             type: "reps",
             repsText: "2 x 8-12",
-            image: placeholder,
+            image: treningC[3],
             note: "Bez przeprostu w lędźwiach.",
           },
           {
@@ -212,7 +229,7 @@ export const workouts = [
             name: "Mini-band pull-apart",
             type: "reps",
             repsText: "3 x 15-25",
-            image: placeholder,
+            image: treningC[4],
             note: "Band na nadgarstkach.",
           },
           {
@@ -220,7 +237,7 @@ export const workouts = [
             name: "Dead bug",
             type: "reps",
             repsText: "3 x 6-10 / strona",
-            image: placeholder,
+            image: treningC[5],
             note: "Bez przeprostu.",
           },
           {
@@ -228,7 +245,7 @@ export const workouts = [
             name: "Step-down ekscentryczny",
             type: "reps",
             repsText: "2-3 x 4-6 / strona",
-            image: placeholder,
+            image: treningC[6],
             note: "Od tygodnia 3, zejście 3-4 s.",
           },
         ],

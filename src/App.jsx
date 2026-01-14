@@ -18,6 +18,11 @@ import {
 
 const REST_SECONDS = 20
 const TIMER_END_SOUND_SRC = `${import.meta.env.BASE_URL}audio/timer-end.mp3`
+const EXERCISES_TEXT_URL = `${import.meta.env.BASE_URL}exercises/cwiczenia.txt`
+
+const EXERCISE_HELP_ALIASES = {
+  "r-1-90-90": ["90/90"],
+}
 
 const workoutById = Object.fromEntries(workouts.map((w) => [w.id, w]))
 
@@ -36,10 +41,88 @@ const formatTime = (totalSeconds) => {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
 }
 
+const normalizeText = (value) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+const splitExerciseBlocks = (text) => {
+  if (!text) return []
+  const lines = text.split(/\r?\n/)
+  const blocks = []
+  let current = null
+
+  const isBlockStart = (line) => /^\d+\)/.test(line.trim())
+  const isBlockTerminator = (line) => {
+    const trimmed = line.trim()
+    if (!trimmed) return false
+    return /^(TRENING\b|Reset awaryjny|Skrot treningu|Skr[oó]t treningu|Kazdy trening|Każdy trening)/i.test(
+      trimmed
+    )
+  }
+
+  lines.forEach((line) => {
+    if (isBlockStart(line)) {
+      if (current) blocks.push(current)
+      current = [line]
+      return
+    }
+
+    if (!current) return
+    if (isBlockTerminator(line)) {
+      blocks.push(current)
+      current = null
+      return
+    }
+
+    current.push(line)
+  })
+
+  if (current) blocks.push(current)
+  return blocks
+}
+
+const getExercisePatterns = (exercise) => {
+  if (!exercise) return []
+  const aliases = EXERCISE_HELP_ALIASES[exercise.id] ?? []
+  return [exercise.name, ...aliases]
+}
+
+const findExerciseExplanation = (blocks, exercise) => {
+  if (!exercise || !blocks.length) return null
+  const patterns = getExercisePatterns(exercise).map(normalizeText)
+
+  for (const block of blocks) {
+    const header = block[0] ?? ""
+    const normalizedHeader = normalizeText(header)
+    const matches = patterns.some((pattern) => {
+      if (!pattern) return false
+      const tokens = pattern.split(" ").filter((token) => token.length >= 2)
+      if (!tokens.length) return false
+      return tokens.every((token) => normalizedHeader.includes(token))
+    })
+    if (matches) {
+      const [title, ...rest] = block
+      return {
+        title: title.trim(),
+        body: rest.join("\n").trim(),
+      }
+    }
+  }
+
+  return null
+}
+
 function App() {
   const [session, setSession] = useState(null)
   const [summary, setSummary] = useState(null)
   const [lastWorkoutId, setLastWorkoutId] = useState(null)
+  const [exerciseHelpOpen, setExerciseHelpOpen] = useState(false)
+  const [exercisesText, setExercisesText] = useState("")
   const endSoundRef = useRef(null)
 
   const playEndSound = useCallback(() => {
@@ -89,10 +172,50 @@ function App() {
     setLastWorkoutId(loadLastWorkoutId())
   }, [])
 
+  useEffect(() => {
+    let active = true
+    fetch(EXERCISES_TEXT_URL)
+      .then((response) => (response.ok ? response.text() : Promise.reject()))
+      .then((text) => {
+        if (active) setExercisesText(text)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!exerciseHelpOpen) return undefined
+    if (typeof document === "undefined") return undefined
+    const handleKey = (event) => {
+      if (event.key === "Escape") setExerciseHelpOpen(false)
+    }
+    document.addEventListener("keydown", handleKey)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.removeEventListener("keydown", handleKey)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [exerciseHelpOpen])
+
   const workout = session ? workoutById[session.workoutId] : null
   const exercises = useMemo(() => (workout ? flattenExercises(workout) : []), [workout])
   const totalExercises = exercises.length
   const currentExercise = session ? exercises[session.index] : null
+  const exerciseBlocks = useMemo(
+    () => splitExerciseBlocks(exercisesText),
+    [exercisesText]
+  )
+  const exerciseExplanation = useMemo(
+    () => findExerciseExplanation(exerciseBlocks, currentExercise),
+    [exerciseBlocks, currentExercise]
+  )
+
+  useEffect(() => {
+    setExerciseHelpOpen(false)
+  }, [session?.index, session?.phase])
 
   useEffect(() => {
     if (session) saveSession(session)
@@ -400,6 +523,14 @@ function App() {
                 {currentExercise.note ? (
                   <p className="text-sm text-muted-foreground">{currentExercise.note}</p>
                 ) : null}
+                <Button
+                  className="w-full"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setExerciseHelpOpen(true)}
+                >
+                  Wyjasnienie cwiczenia
+                </Button>
 
                 {isTime ? (
                   <div className="flex flex-col gap-4">
@@ -446,6 +577,60 @@ function App() {
           Przerwa po cwiczeniu: {REST_SECONDS}s
         </div>
       </div>
+
+      {exerciseHelpOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex h-full w-full flex-col bg-background/95 text-foreground backdrop-blur"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="exercise-help-title"
+        >
+          <div className="flex items-center justify-between border-b border-border/60 px-4 py-4">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                Wyjasnienie cwiczenia
+              </p>
+              <h2 id="exercise-help-title" className="truncate text-lg font-semibold">
+                {currentExercise.name}
+              </h2>
+            </div>
+            <Button variant="ghost" onClick={() => setExerciseHelpOpen(false)}>
+              Zamknij
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 py-6">
+            <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+              {!exercisesText ? (
+                <p className="text-sm text-muted-foreground">Ladowanie opisu...</p>
+              ) : exerciseExplanation ? (
+                <>
+                  <h3 className="text-base font-semibold">{exerciseExplanation.title}</h3>
+                  {exerciseExplanation.body ? (
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                      {exerciseExplanation.body}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Brak dodatkowych szczegolow w pliku cwiczenia.txt.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Brak opisu w pliku cwiczenia.txt dla tego cwiczenia.
+                  </p>
+                  {currentExercise.note ? (
+                    <p className="text-sm text-muted-foreground">
+                      Wskazowka: {currentExercise.note}
+                    </p>
+                  ) : null}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
